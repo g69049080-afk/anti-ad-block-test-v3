@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ad Blocker Test by Y_scripts</title>
+<style>
+:root{--bg:#EDEFF2;--panel:#fff;--line:#C9CED6;--ink:#16181D;--muted:#5E6470;--ok:#0B7A4B;--ok-bg:#D9F0E4;--warn:#9A5600;--warn-bg:#FBE6C4;--wait:#5E6470;--wait-bg:#E3E6EB;--accent:#2F4BFF;--disc:#5865F2}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='190'%3E%3Ctext x='150' y='100' text-anchor='middle' font-family='Arial,sans-serif' font-size='34' font-weight='800' fill='%2316181D' fill-opacity='.075' transform='rotate(-22 150 95)'%3EY_scripts%3C/text%3E%3C/svg%3E")}
+main{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:30px 20px 90px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:34px;border-bottom:2px solid var(--ink);padding-bottom:12px}
+.brand{font-weight:800;font-size:20px;letter-spacing:-.01em}
+.chip{font-size:13px;padding:3px 9px;border:1px solid var(--line);border-radius:3px;background:var(--panel);color:var(--muted)}
+.chip.ok{color:var(--ok);border-color:var(--ok)} .chip.bad{color:var(--warn);border-color:var(--warn)}
+.hero{display:grid;grid-template-columns:200px 1fr;gap:30px;align-items:start}
+.gauge{position:static;width:auto;height:auto}
+.gauge svg{display:none}
+.gc{position:static;display:block;text-align:left}
+.gc .pct{font-size:78px;font-weight:800;line-height:.95;letter-spacing:-.045em;font-variant-numeric:tabular-nums}
+.gc .grade{margin-top:8px;color:var(--muted);font-size:15px}
+h1{font-size:clamp(26px,4.5vw,36px);line-height:1.1;font-weight:800;letter-spacing:-.025em;margin:0 0 8px}
+.verdict{color:var(--muted);margin:0 0 18px;max-width:56ch}
+.cats{display:grid;gap:8px;margin-bottom:18px}
+.cat{display:grid;grid-template-columns:170px 1fr 46px;gap:12px;align-items:center;font-size:14px}
+.cat .n{color:var(--muted);text-align:right}
+.meter{height:6px;background:var(--line)}
+.meter i{display:block;height:100%;width:0;background:var(--ok);transition:width .4s}
+.delta{margin:-6px 0 16px;font-size:14px;color:var(--muted)}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+button,a.btn{font:600 15px -apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding:8px 14px;border-radius:3px;border:1px solid var(--ink);background:var(--panel);color:var(--ink);cursor:pointer;text-decoration:none;display:inline-block}
+button:hover:not(:disabled){background:#F6F7F9}
+button.pri{background:var(--ink);color:#fff}
+button.pri:hover:not(:disabled){background:#2B2F3A}
+button:disabled{opacity:.5;cursor:default}
+:is(button,a):focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+h2{font-size:18px;font-weight:800;letter-spacing:-.01em;margin:38px 0 2px}
+.sub{color:var(--muted);margin:0 0 10px;font-size:14px}
+.rows{background:var(--panel);border:1px solid var(--line);border-radius:3px}
+.row{display:grid;grid-template-columns:1fr auto auto;gap:1px 14px;align-items:center;padding:10px 14px;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.row .n{font-weight:600}
+.row .d{grid-column:1;color:var(--muted);font-size:13px;overflow-wrap:anywhere}
+.row .ms{grid-row:1 / span 2;grid-column:2;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.pill{grid-row:1 / span 2;grid-column:3;font-size:12px;font-weight:700;padding:2px 8px;border-radius:3px;min-width:84px;text-align:center}
+.pill.wait{background:var(--wait-bg);color:var(--wait)} .pill.blocked{background:var(--ok-bg);color:var(--ok)} .pill.allowed{background:var(--warn-bg);color:var(--warn)}
+.feed{background:#16181D;border-radius:3px;padding:12px 14px;height:160px;overflow-y:auto;font:12.5px/1.7 ui-monospace,Consolas,Menlo,monospace;color:#A9B0BD}
+.feed b.ok{color:#6EE7A8} .feed b.warn{color:#FFC067} .feed b.w{color:#8B93A3}
+.note{margin-top:30px;color:var(--muted);font-size:13.5px;max-width:72ch}
+.bait{position:absolute;left:-9999px;top:0;width:120px;height:20px;pointer-events:none}
+.overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(22,24,29,.6)}
+.overlay.on{display:flex} #discord{z-index:55} #results{z-index:60} #wall{z-index:70}
+.modal{position:relative;overflow:hidden;background:var(--panel);border:2px solid var(--ink);border-radius:4px;padding:24px;max-width:430px;width:100%;max-height:92vh;overflow-y:auto;box-shadow:7px 7px 0 var(--ink)}
+.modal>*{position:relative;z-index:1}
+.modal h3{font-size:21px;font-weight:800;letter-spacing:-.02em;margin:0 0 6px}
+.modal p{margin:0 0 16px;color:var(--muted)}
+a.join{background:var(--disc);border-color:var(--disc);color:#fff}
+.modal .wm{position:absolute;inset:0;z-index:0;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='110'%3E%3Ctext x='90' y='60' text-anchor='middle' font-family='Arial,sans-serif' font-size='24' font-weight='800' fill='%2316181D' fill-opacity='.1' transform='rotate(-24 90 55)'%3EY_scripts%3C/text%3E%3C/svg%3E")}
+.rs{display:flex;align-items:baseline;gap:12px;margin:2px 0 4px}
+.rs .pct{font-size:54px;font-weight:800;line-height:1;letter-spacing:-.04em}
+.rl{border:1px solid var(--line);border-radius:3px;margin:14px 0 16px;background:#ffffffd9}
+.rl div{display:flex;justify-content:space-between;gap:12px;padding:7px 10px;border-top:1px solid var(--line);font-size:14px}
+.rl div:first-child{border-top:0}
+.rl .pill{min-width:0;padding:1px 8px}
+.credit{margin-top:14px;text-align:right;font-weight:800;font-size:14px;color:var(--muted)}
+@media(max-width:700px){.hero{grid-template-columns:1fr}.cat{grid-template-columns:120px 1fr 44px}}
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><div class="brand">Y_scripts</div><span class="chip" id="conn">Not scanned yet</span></div>
+
+  <section class="hero" id="hero">
+    <div class="gauge" role="img" aria-label="Percent of ad and tracker checks blocked">
+      <svg viewBox="0 0 140 140"><circle class="bg" cx="70" cy="70" r="58" fill="none" stroke-width="10"/>
+        <circle class="fg" id="ring" cx="70" cy="70" r="58" fill="none" stroke-width="10" stroke-linecap="round" stroke-dasharray="364.4" stroke-dashoffset="364.4"/>
+        <g class="sweep"><path d="M70 70 L70 8" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" opacity=".8"/></g></svg>
+      <div class="gc"><div class="pct" id="pct">–</div><div class="grade" id="grade"></div></div>
+    </div>
+    <div>
+      <h1 id="head">Ready to test your ad blocker</h1>
+      <p class="verdict" id="verdict">Press Start scan to run the same checks websites use. Nothing runs until you do.</p>
+      <div class="cats" id="cats"></div>
+      <div class="delta" id="delta"></div>
+      <div class="btns"><button class="pri" id="rerun">Start scan</button><button id="wallbtn">Preview an anti-adblock wall</button></div>
+    </div>
+  </section>
+
+  <h2>Live scan</h2>
+  <p class="sub">Each check reports as it finishes. Blocked requests usually fail in a few milliseconds.</p>
+  <div class="feed" id="feed" aria-live="off"></div>
+
+  <div id="lists"></div>
+
+  <p class="note">Blocked means your setup stopped that check, which is also what lets a site notice a blocker. Allowed means it went through. Results depend on your filter lists, browser, DNS filter or network. Network checks need internet access and only count when the connection check passes. Nothing is stored or sent anywhere except the requests to the servers listed.</p>
+</main>
+
+<div class="overlay" id="discord" role="dialog" aria-modal="true" aria-labelledby="dt"><div class="modal">
+  <h3 id="dt">Do you want to help us?</h3><p>Join our Discord server to help us, share ideas, report problems and more</p>
+  <div class="btns"><a class="btn join" id="joinlink" href="https://discord.gg/xQNwwBzgmd" target="_blank" rel="noopener noreferrer">Join Discord</a><button id="nothanks">No thanks</button></div>
+</div></div>
+
+<div class="overlay" id="results" role="dialog" aria-modal="true" aria-labelledby="rt"><div class="modal">
+  <div class="wm" aria-hidden="true"></div>
+  <h3 id="rt">Scan results</h3>
+  <div class="rs"><div class="pct" id="r-pct">0%</div><span id="r-grade" style="color:var(--muted)"></span></div>
+  <p id="r-verdict" style="margin:0"></p>
+  <div class="rl" id="r-list"></div>
+  <div class="btns"><button class="pri" id="r-img">Save image</button><button id="r-copy">Copy summary</button><button id="r-close">Close</button></div>
+  <div class="credit">Y_scripts</div>
+</div></div>
+
+<div class="overlay" id="wall" role="dialog" aria-modal="true" aria-labelledby="wt"><div class="modal" style="background:#fff;color:#14182B">
+  <h3 id="wt">Ad blocker detected</h3><p style="color:#4a5070">We rely on ads to keep this site free. Please turn off your ad blocker, then reload.</p>
+  <button class="pri" id="closewall">Close preview</button><p style="font-size:13px;margin:14px 0 0;color:#6a7191">Example only. Many sites show something like this when a check above is blocked.</p>
+</div></div>
+
+<script>
+const $=id=>document.getElementById(id), wait=ms=>new Promise(r=>setTimeout(r,ms));
+const CATS={cosmetic:["Hidden page elements","Ad-looking elements added to this page, checked for hiding or removal."],
+ ads:["Ad networks","Real ad servers. A blocked request is what a site sees as a failure."],
+ trackers:["Trackers","Analytics and pixels. Privacy blockers often catch these even when ads load."]};
+const BAITS=[
+ ["Ad class names","div","bait adsbox ad-banner ad-placement textads banner-ads pub_300x250"],
+ ["Ad container IDs","div","bait","google_ads_frame1"],
+ ["AdSense slot","ins","bait adsbygoogle"],
+ ["Ad iframe","iframe","bait ad-frame","aswift_0"],
+ ["Sponsored block","div","bait sponsored-content sponsor-box ad-slot native-ad promoted"],
+ ["Popup ad classes","div","bait popup-ad modal-ad interstitial adblock-banner"]];
+const NET=[
+ ["ads","Google AdSense","https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"],
+ ["ads","Google Publisher Tag","https://securepubads.g.doubleclick.net/tag/js/gpt.js"],
+ ["ads","DoubleClick ad status","https://static.doubleclick.net/instream/ad_status.js"],
+ ["ads","Amazon Ads","https://c.amazon-adsystem.com/aax2/apstag.js","script"],
+ ["ads","Criteo","https://static.criteo.net/js/ld/publishertag.js"],
+ ["ads","Taboola","https://cdn.taboola.com/libtrc/impl.js"],
+ ["ads","Outbrain","https://widgets.outbrain.com/outbrain.js"],
+ ["trackers","Google Analytics","https://www.google-analytics.com/analytics.js"],
+ ["trackers","Google Tag Manager","https://www.googletagmanager.com/gtm.js"],
+ ["trackers","Meta Pixel","https://connect.facebook.net/en_US/fbevents.js"],
+ ["trackers","Hotjar","https://static.hotjar.com/c/hotjar-0.js"],
+ ["trackers","Microsoft Clarity","https://www.clarity.ms/tag/clarity"],
+ ["trackers","TikTok Pixel","https://analytics.tiktok.com/i18n/pixel/events.js"]];
+const CONTROL="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css";
+
+let rows=[], running=false, pendingResults=false;
+function build(){
+  rows=[]; $("lists").innerHTML=""; $("feed").innerHTML="";
+  const mk=(cat,name,detail)=>{rows.push({cat,name,detail,state:"wait",ms:null})};
+  BAITS.forEach(b=>mk("cosmetic",b[0],b[2].replace("bait ","").split(" ").slice(0,4).join(", ")));
+  NET.forEach(n=>mk(n[0],n[1],new URL(n[2]).host));
+  Object.keys(CATS).forEach(k=>{
+    $("lists").insertAdjacentHTML("beforeend",`<h2>${CATS[k][0]}</h2><p class="sub">${CATS[k][1]}</p><div class="rows" id="L-${k}"></div>`);
+    rows.filter(r=>r.cat===k).forEach(r=>{
+      const el=document.createElement("div");el.className="row";
+      el.innerHTML='<div class="n"></div><div class="d"></div><span class="ms"></span><span class="pill wait">Not run</span>';
+      el.querySelector(".n").textContent=r.name;el.querySelector(".d").textContent=r.detail;
+      $("L-"+k).appendChild(el);r.el=el;
+    });
+  });
+  $("cats").innerHTML=Object.keys(CATS).map(k=>`<div class="cat"><span class="t">${CATS[k][0]}</span><div class="meter"><i id="m-${k}"></i></div><span class="n" id="n-${k}">–</span></div>`).join("");
+  recalc();
+}
+const LAB={blocked:"Blocked",allowed:"Allowed",wait:"Inconclusive"};
+function log(msg,cls){const f=$("feed"),d=document.createElement("div");d.innerHTML=`<b class="${cls||""}">${msg.slice(0,msg.indexOf(" "))}</b>${msg.slice(msg.indexOf(" "))}`;f.appendChild(d);f.scrollTop=f.scrollHeight}
+function set(r,state,detail,ms){
+  r.state=state;if(detail)r.detail=detail;r.ms=ms;
+  const p=r.el.querySelector(".pill");p.className="pill "+state;p.textContent=LAB[state];
+  r.el.querySelector(".d").textContent=r.detail;r.el.querySelector(".ms").textContent=ms!=null?ms+" ms":"";
+  log((state==="blocked"?"BLOCKED":state==="allowed"?"ALLOWED":"UNSURE")+" "+r.name+(ms!=null?" ("+ms+" ms)":""),state==="blocked"?"ok":state==="allowed"?"warn":"w");
+  recalc();
+}
+function stats(){
+  const s={all:{b:0,a:0,t:rows.length}};
+  Object.keys(CATS).forEach(k=>s[k]={b:0,a:0,t:rows.filter(r=>r.cat===k).length});
+  rows.forEach(r=>{if(r.state==="blocked"){s[r.cat].b++;s.all.b++}else if(r.state==="allowed"){s[r.cat].a++;s.all.a++}});
+  return s;
+}
+function grade(p){return p>=85?"A":p>=70?"B":p>=50?"C":p>=30?"D":"F"}
+function recalc(){
+  const s=stats(),done=s.all.b+s.all.a,pct=done?Math.round(s.all.b/(done)*100):null;
+  const ring=$("ring"),C=364.4;
+  ring.style.strokeDashoffset=C-(C*(pct||0)/100);
+  ring.style.stroke=pct==null?"#8A84AA":pct>=70?"#3DDC97":pct>=40?"#FFB454":"#FF6B81";
+  $("pct").textContent=pct==null?"–":pct+"%";
+  $("grade").textContent=!running&&done?"Grade "+grade(pct):running?"scanning":"";
+  $("hero").classList.toggle("scanning",running);
+  Object.keys(CATS).forEach(k=>{const c=s[k];$("m-"+k).style.width=(c.b/c.t*100)+"%";$("n-"+k).textContent=c.b+"/"+c.t});
+  if(!running&&done){
+    $("head").textContent=pct>=85?"Most things were blocked":pct>=50?"Some things got through":pct>0?"Very little was blocked":"Nothing was blocked";
+    $("verdict").textContent=pct===100?"Everything was blocked. Sites that look for blockers will notice.":pct===0?"All checks went through, so a site would assume you have no blocker.":s.all.b+" of "+done+" checks were blocked. Anti-adblock scripts could still notice the blocked ones.";
+  }
+}
+
+/* ---- tests ---- */
+function hidden(el){
+  if(!el.isConnected)return "removed from the page";
+  const c=getComputedStyle(el);
+  if(c.display==="none")return "display set to none";
+  if(c.visibility==="hidden")return "visibility hidden";
+  if(parseFloat(c.opacity)===0)return "opacity 0";
+  if(!el.offsetHeight||!el.offsetWidth)return "collapsed to zero size";
+  return null;
+}
+async function cosmetic(){
+  const t0=performance.now(),els=BAITS.map(b=>{const e=document.createElement(b[1]);e.className=b[2];if(b[3])e.id=b[3];if(b[1]!=="iframe")e.innerHTML="&nbsp;";document.body.appendChild(e);return e});
+  await wait(900);const ms=Math.round(performance.now()-t0);
+  BAITS.forEach((b,i)=>{const why=hidden(els[i]);set(rows[i],why?"blocked":"allowed",why?"Hidden by blocker: "+why:rows[i].detail,ms);els[i].remove()});
+}
+async function fprobe(u){
+  const c=new AbortController(),t=setTimeout(()=>c.abort(),7000),s=performance.now();
+  try{await fetch(u,{mode:"no-cors",cache:"reload",signal:c.signal});return["ok",Math.round(performance.now()-s)]}
+  catch(e){return[e.name==="AbortError"?"timeout":"blocked",Math.round(performance.now()-s)]}finally{clearTimeout(t)}
+}
+function sprobe(u){return new Promise(res=>{
+  const s=document.createElement("script"),st=performance.now(),f=r=>{clearTimeout(t);s.remove();res([r,Math.round(performance.now()-st)])},t=setTimeout(()=>f("timeout"),7000);
+  s.onload=()=>f("ok");s.onerror=()=>f("blocked");s.async=true;s.src=u;document.head.appendChild(s)})}
+async function network(){
+  const [cr]=await fprobe(CONTROL);
+  $("conn").className="chip "+(cr==="ok"?"ok":"bad");
+  $("conn").textContent=cr==="ok"?"Connection OK":"No connection, network results skipped";
+  log(cr==="ok"?"READY connection check passed":"WARN connection check failed ("+cr+")",cr==="ok"?"ok":"warn");
+  await Promise.all(NET.map(async(n,i)=>{
+    const r=rows[BAITS.length+i],[res,ms]=n[3]==="script"?await sprobe(n[2]):await fprobe(n[2]),host=new URL(n[2]).host;
+    if(cr!=="ok")return set(r,"wait","Skipped: connection check failed.",null);
+    if(res==="blocked")set(r,"blocked","Request to "+host+" failed, like it would for a site.",ms);
+    else if(res==="timeout")set(r,"wait","Request to "+host+" timed out.",null);
+    else set(r,"allowed","Request to "+host+" went through.",ms);
+  }));
+}
+async function runAll(){
+  if(running)return;running=true;$("rerun").disabled=true;build();document.querySelectorAll(".row .pill").forEach(p=>p.textContent="Pending");
+  log("START scan with "+rows.length+" checks");
+  await Promise.all([cosmetic(),network()]);
+  running=false;$("rerun").disabled=false;$("rerun").textContent="Run again";recalc();
+  const s=stats(),done=s.all.b+s.all.a,pct=done?Math.round(s.all.b/done*100):0;
+  log("DONE "+s.all.b+" blocked, "+s.all.a+" allowed","ok");
+  try{const prev=JSON.parse(localStorage.getItem("ybscan")||"null");
+    if(prev&&prev.done)$("delta").textContent="Last scan: "+prev.pct+"% blocked. Now: "+pct+"%"+(pct>prev.pct?" (more blocked)":pct<prev.pct?" (less blocked)":" (same)");
+    localStorage.setItem("ybscan",JSON.stringify({pct,done}))}catch(e){}
+  fillResults(s,pct,done);
+  if($("discord").classList.contains("on"))pendingResults=true;else $("results").classList.add("on"),$("r-close").focus();
+}
+
+/* ---- results popup, image, copy ---- */
+let summary="";
+function fillResults(s,pct,done){
+  $("r-pct").textContent=done?pct+"%":"–";$("r-grade").textContent=done?"blocked, grade "+grade(pct):"";
+  $("r-verdict").textContent=$("verdict").textContent;
+  const l=$("r-list");l.innerHTML="";
+  Object.keys(CATS).forEach(k=>{const d=document.createElement("div"),a=document.createElement("span"),b=document.createElement("span");
+    a.textContent=CATS[k][0];b.className="pill "+(s[k].b>=s[k].t/2?"blocked":"allowed");b.textContent=s[k].b+" of "+s[k].t+" blocked";d.append(a,b);l.appendChild(d)});
+  summary="Ad blocker test by Y_scripts: "+(done?pct+"% blocked (grade "+grade(pct)+")":"inconclusive")+". "+Object.keys(CATS).map(k=>CATS[k][0]+" "+s[k].b+"/"+s[k].t).join(", ")+".";
+}
+function saveImage(){
+  const c=document.createElement("canvas");c.width=1200;c.height=630;const x=c.getContext("2d"),s=stats(),done=s.all.b+s.all.a,pct=done?Math.round(s.all.b/done*100):0;
+  x.fillStyle="#EDEFF2";x.fillRect(0,0,1200,630);
+  x.save();x.fillStyle="rgba(22,24,29,.075)";x.font="800 38px Arial";x.textAlign="center";
+  for(let i=-2;i<9;i++)for(let j=-2;j<6;j++){x.save();x.translate(i*200+(j%2)*100,j*130);x.rotate(-.38);x.fillText("Y_scripts",0,0);x.restore()}x.restore();
+  x.fillStyle="#16181D";x.fillRect(60,60,1080,4);
+  x.textAlign="left";x.font="800 40px Arial";x.fillText("Ad blocker test",60,125);
+  x.font="800 190px Arial";x.fillText(pct+"%",52,330);
+  x.font="28px Arial";x.fillStyle="#5E6470";x.fillText(done?"blocked, grade "+grade(pct):"inconclusive",60,385);
+  x.font="30px Arial";Object.keys(CATS).forEach((k,i)=>{x.fillStyle="#5E6470";x.fillText(CATS[k][0],560,250+i*64);x.fillStyle="#16181D";x.font="700 30px Arial";x.fillText(s[k].b+" / "+s[k].t+" blocked",880,250+i*64);x.font="30px Arial"});
+  x.textAlign="right";x.fillStyle="#16181D";x.font="800 34px Arial";x.fillText("Y_scripts",1140,585);
+  c.toBlob(b=>{const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="adblock-result-Y_scripts.png";document.body.appendChild(a);a.click();a.remove()});
+}
+async function copySummary(){
+  try{await navigator.clipboard.writeText(summary);$("r-copy").textContent="Copied"}catch(e){$("r-copy").te
